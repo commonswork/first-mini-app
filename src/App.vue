@@ -1,9 +1,11 @@
 <script setup>
 import TelegramInfo from './components/TelegramInfo.vue';
+import ShareButton from './components/ShareButton.vue';
 </script>
 
 <template>
   <div class="app">
+    <ShareButton />
     <TelegramInfo />
   </div>
 </template>

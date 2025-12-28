@@ -127,6 +127,25 @@ export function useTelegram() {
     return null;
   };
 
+  // 分享 Mini App 到聊天（使用 inline query）
+  const shareToChat = (message = '', chatTypes = ['users', 'groups', 'channels']) => {
+    if (tg.value) {
+      // 使用 switchInlineQuery 让用户选择要分享到的聊天
+      // message 会作为 inline query 传递给 bot
+      tg.value.switchInlineQuery(message, chatTypes);
+    }
+  };
+
+  // 获取聊天实例 ID（用于识别是从哪个群组打开的）
+  const getChatInstance = () => {
+    return initDataUnsafe.value?.chat_instance || null;
+  };
+
+  // 获取启动参数（从 direct link 传递的参数）
+  const getStartParam = () => {
+    return initDataUnsafe.value?.start_param || null;
+  };
+
   return {
     tg,
     user,
@@ -145,6 +164,9 @@ export function useTelegram() {
     sendData,
     openLink,
     openTelegramLink,
-    getEffectiveChatId
+    getEffectiveChatId,
+    shareToChat,
+    getChatInstance,
+    getStartParam
   };
 }

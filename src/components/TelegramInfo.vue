@@ -60,6 +60,14 @@
           <span class="label">聊天用户名:</span>
           <span class="value">@{{ chat.username }}</span>
         </div>
+        <div class="info-item" v-if="getChatInstance()">
+          <span class="label">Chat Instance:</span>
+          <span class="value">{{ getChatInstance() }} <span class="hint">（群组上下文唯一标识）</span></span>
+        </div>
+        <div class="info-item" v-if="getStartParam()">
+          <span class="label">Start Param:</span>
+          <span class="value">{{ getStartParam() }}</span>
+        </div>
         <div v-if="!chat && getChatType() === 'private'" class="info-note">
           ℹ️ 私聊场景下，chat 对象为空是正常的。可以使用 user.id 作为 chat_id。
         </div>
@@ -123,7 +131,17 @@ import { ref, computed } from 'vue';
 import { useTelegram } from '../composables/useTelegram.js';
 import { parseTelegramWebAppUrl } from '../utils/urlParser.js';
 
-const { user, chat, initDataUnsafe, themeParams, isReady, tg } = useTelegram();
+const { 
+  user, 
+  chat, 
+  initDataUnsafe, 
+  themeParams, 
+  isReady, 
+  tg,
+  shareToChat,
+  getChatInstance,
+  getStartParam
+} = useTelegram();
 const urlData = ref(null);
 
 // 从 URL 解析的数据（作为备用）
