@@ -11,6 +11,7 @@ onMounted(() => {
 
 <template>
   <div>
+    url =
     {{info}}
   </div>
 </template>
