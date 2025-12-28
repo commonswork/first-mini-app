@@ -1,21 +1,17 @@
 <script setup>
-
-import {onMounted, ref} from "vue";
-
-const info = ref(null)
-onMounted(() => {
-  info.value = window.location.toString()
-  console.log(info.value)
-})
+import TelegramInfo from './components/TelegramInfo.vue';
 </script>
 
 <template>
-  <div>
-    url =
-    {{info}}
+  <div class="app">
+    <TelegramInfo />
   </div>
 </template>
 
 <style scoped>
-
+.app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
 </style>
