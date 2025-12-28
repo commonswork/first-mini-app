@@ -1,18 +1,6 @@
 <template>
   <div class="flex flex-col items-center space-y-4">
-    <!-- 富媒体分享按钮（推荐） -->
-    <button 
-      @click="shareRichMedia" 
-      class="inline-flex items-center px-6 py-3 bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-      :disabled="!shareToStory"
-    >
-      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      分享富媒体卡片
-    </button>
-
-    <!-- 普通分享按钮 -->
+    <!-- 主分享按钮 -->
     <button 
       @click="shareToGroups" 
       class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -21,7 +9,7 @@
       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
       </svg>
-      分享文本链接
+      分享到群组
     </button>
 
     <!-- 分享模板选择 -->
@@ -36,16 +24,6 @@
         {{ template.emoji }} {{ template.name }}
       </button>
     </div>
-
-    <!-- 说明文字 -->
-    <div class="text-center text-sm text-gray-600 max-w-md">
-      <p class="mb-2">
-        <span class="font-medium text-purple-600">富媒体卡片</span>：带图片预览和按钮的精美分享格式
-      </p>
-      <p>
-        <span class="font-medium text-blue-600">文本链接</span>：传统的文本 + 链接分享方式
-      </p>
-    </div>
   </div>
 </template>
 
@@ -53,7 +31,7 @@
 import { ref } from 'vue';
 import { useTelegram } from '../composables/useTelegram.js';
 
-const { shareDirectLink, shareToStory, createShareTemplate, showAlert, user } = useTelegram();
+const { shareDirectLink, createShareTemplate, showAlert, user } = useTelegram();
 
 // 分享模板配置
 const shareTemplates = ref([
@@ -62,29 +40,6 @@ const shareTemplates = ref([
   { key: 'feature', name: '新功能', emoji: '✨' },
   { key: 'announcement', name: '通知', emoji: '📢' }
 ]);
-
-// 富媒体分享（推荐方式）
-const shareRichMedia = () => {
-  if (!shareToStory) {
-    showAlert('富媒体分享功能不可用，需要 Telegram Bot API 7.8+');
-    return;
-  }
-
-  // 你的 Mini App 图片 URL（需要是 HTTPS）
-  const mediaUrl = 'https://cdn.dribbble.com/userupload/16118312/file/original-6c2a5118ea1abaa06164d71b337148ee.jpg?resize=400x0';
-  
-  // Mini App 链接
-  const miniAppUrl = "https://t.me/MyMoniMoniBot/fisrtminiapp";
-  
-  // 分享选项
-  const options = {
-    text: '🚀 发现一个超棒的 Telegram Mini App！快来体验吧！', // Story 上的文字描述
-    miniAppUrl: miniAppUrl, // Mini App 链接
-    buttonText: '打开 Mini App' // 按钮文字
-  };
-
-  shareToStory(mediaUrl, options);
-};
 
 // 默认分享（简单模式）
 const shareToGroups = () => {

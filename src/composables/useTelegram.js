@@ -131,42 +131,6 @@ export function useTelegram() {
     }
   };
 
-  // 分享到 Story（富媒体格式，带图片和按钮）
-  const shareToStory = (mediaUrl, options = {}) => {
-    if (!tg.value) {
-      console.error('Telegram WebApp 未初始化');
-      return false;
-    }
-
-    try {
-      // 检查方法是否存在（需要 Bot API 7.8+）
-      if (typeof tg.value.shareToStory !== 'function') {
-        console.error('shareToStory 方法不可用，需要 Bot API 7.8+');
-        return false;
-      }
-
-      // 构建分享参数
-      const params = {
-        text: options.text || '',
-        widget_link: options.widget_link || null
-      };
-
-      // 如果提供了 Mini App 链接，创建 widget_link
-      if (options.miniAppUrl) {
-        params.widget_link = {
-          url: options.miniAppUrl,
-          name: options.buttonText || '打开 Mini App'
-        };
-      }
-
-      // 调用 shareToStory 方法
-      tg.value.shareToStory(mediaUrl, params);
-      return true;
-    } catch (error) {
-      console.error('分享到 Story 失败:', error);
-      return false;
-    }
-  };
   // 分享直接链接（不通过机器人）
   const shareDirectLink = (url, options = {}) => {
     if (!tg.value) {
@@ -295,7 +259,6 @@ export function useTelegram() {
     openTelegramLink,
     shareToChat,
     shareDirectLink,
-    shareToStory,
     createShareTemplate,
     getChatInstance,
     getStartParam
