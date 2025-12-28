@@ -46,20 +46,41 @@ console.log(window.Telegram?.WebApp);
 // 应该返回一个对象，而不是 undefined
 ```
 
-#### 3. Telegram 版本过旧
+#### 3. Telegram 版本过旧 ⭐ 你的情况
 
 **症状：**
+- 错误信息：`Method switchInlineQuery is not supported in version 6.0`
 - `switchInlineQuery` 方法不存在
 - Telegram WebApp 版本低于 6.7
 
 **解决方案：**
 
-更新 Telegram 到最新版本。`switchInlineQuery` 需要 Bot API 6.7+。
+**方案 A：更新 Telegram（推荐）**
+
+更新到最新版本的 Telegram 即可使用完整的分享功能。
+
+- **Android**: 在 Google Play 或官网下载最新版
+- **iOS**: 在 App Store 更新
+- **Desktop**: 从 [telegram.org](https://telegram.org) 下载最新版
+- **Web**: 使用 [web.telegram.org](https://web.telegram.org)
+
+**方案 B：使用备用分享方式（已实现）**
+
+代码已经自动处理了版本兼容性：
+- 版本 >= 6.7: 使用 `switchInlineQuery`（可以选择特定聊天类型）
+- 版本 < 6.7: 使用 `openLink` + Telegram 分享链接（通用分享）
+
+备用方式的限制：
+- ❌ 无法限制只分享到群组
+- ❌ 无法使用 inline query
+- ✅ 可以分享链接到任意聊天
+- ✅ 兼容所有版本
 
 **检查版本：**
 ```javascript
 console.log(window.Telegram.WebApp.version);
-// 应该 >= 6.7
+// 你的版本: 6.0
+// 需要版本: 6.7+
 ```
 
 #### 4. Bot 未处理 inline_query 事件

@@ -138,13 +138,22 @@ export function useTelegram() {
     }
     
     try {
-      console.log('调用 switchInlineQuery:', { message, chatTypes });
+      console.log('调用 switchInlineQuery:', { message, chatTypes, version: tg.value.version });
       
       // 检查方法是否存在
       if (typeof tg.value.switchInlineQuery !== 'function') {
-        console.error('switchInlineQuery 方法不可用');
-        showAlert('分享功能不可用，请确保 Bot 已启用 Inline Mode');
-        return false;
+        console.warn('switchInlineQuery 方法不可用，使用备用方案');
+        
+        // 备用方案：使用 openTelegramLink 打开分享链接
+        const botUsername = getBotUsername();
+        if (botUsername) {
+          const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`;
+          tg.value.openLink(shareUrl);
+          return true;
+        } else {
+          showAlert('分享功能需要 Telegram 6.7+ 版本\n\n当前版本: ' + tg.value.version + '\n请更新 Telegram 到最新版本');
+          return false;
+        }
       }
       
       // 调用 switchInlineQuery
@@ -152,6 +161,39 @@ export function useTelegram() {
       return true;
     } catch (error) {
       console.error('switchInlineQuery 调用失败:', error);
+      
+      // 如果是版本不支持的错误，提供备用方案
+      if (error.message && error.message.includes('not supported')) {
+        showAlert('此功能需要更新 Telegram\n\n当前版本: ' + tg.value.version + '\n需要版本: 6.7+\n\n请更新 Telegram 应用');
+      } else {
+        showAlert('分享失败: ' + error.message);
+      }
+      return false;
+    }
+  };
+  
+  // 获取 Bot 用户名（从 URL 或配置中）
+  const getBotUsername = () => {
+    // 尝试从 URL 中提取 bot username
+    // 例如：https://t.me/your_bot_name/app
+    const match = window.location.href.match(/t\.me\/([^\/]+)/);
+    return match ? match[1] : null;
+  };
+  
+  // 使用备用分享方案（适用于旧版本）
+  const shareFallback = (message = '') => {
+    if (!tg.value) {
+      console.error('Telegram WebApp 未初始化');
+      return false;
+    }
+    
+    try {
+      // 方案 1: 使用 Telegram 分享链接
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`;
+      tg.value.openLink(shareUrl);
+      return true;
+    } catch (error) {
+      console.error('备用分享方案失败:', error);
       showAlert('分享失败: ' + error.message);
       return false;
     }
@@ -187,6 +229,7 @@ export function useTelegram() {
     openTelegramLink,
     getEffectiveChatId,
     shareToChat,
+    shareFallback,
     getChatInstance,
     getStartParam
   };
