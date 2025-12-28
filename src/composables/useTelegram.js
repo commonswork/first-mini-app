@@ -115,6 +115,18 @@ export function useTelegram() {
     }
   };
 
+  // 获取有效的 chat_id（私聊时返回 user_id）
+  const getEffectiveChatId = () => {
+    if (chat.value) {
+      return chat.value.id;
+    }
+    // 私聊场景下，chat_id 等于 user_id
+    if (initDataUnsafe.value?.chat_type === 'private' && user.value) {
+      return user.value.id;
+    }
+    return null;
+  };
+
   return {
     tg,
     user,
@@ -132,6 +144,7 @@ export function useTelegram() {
     close,
     sendData,
     openLink,
-    openTelegramLink
+    openTelegramLink,
+    getEffectiveChatId
   };
 }
