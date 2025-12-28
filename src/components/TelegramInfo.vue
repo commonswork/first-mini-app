@@ -1,85 +1,82 @@
 <template>
-  <div class="telegram-info">
+  <div class="max-w-2xl mx-auto p-6">
+    <h2 class="text-2xl font-bold text-blue-600 text-center mb-8">Telegram 用户信息</h2>
+
     <!-- 加载状态 -->
-    <div v-if="!isReady" class="flex items-center justify-center p-8 bg-white/10 rounded-lg">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      <span class="ml-3 text-white">正在加载 Telegram SDK...</span>
+    <div v-if="!isReady" class="flex items-center justify-center py-12">
+      <div class="text-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p class="text-gray-600">正在加载 Telegram SDK...</p>
+      </div>
     </div>
 
     <!-- 用户信息卡片 -->
-    <div v-if="displayUser" class="bg-white/10 backdrop-blur-sm rounded-xl p-6 shadow-lg">
-      <!-- 头像和基本信息 -->
-      <div class="flex items-center space-x-4 mb-6">
+    <div v-if="displayUser" class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div class="flex flex-col items-center space-y-4">
+        <!-- 用户头像 -->
         <div v-if="displayUser.photo_url" class="relative">
           <img 
             :src="displayUser.photo_url" 
             alt="用户头像" 
-            class="w-16 h-16 rounded-full border-2 border-white/30 shadow-md"
+            class="w-24 h-24 rounded-full border-4 border-blue-500 shadow-lg"
           />
-          <div v-if="displayUser.is_premium" class="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1">
-            <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1z" clip-rule="evenodd"/>
-            </svg>
-          </div>
         </div>
-        <div v-else class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center border-2 border-white/30 shadow-md">
-          <span class="text-2xl font-bold text-white">{{ getUserInitials() }}</span>
+        <div v-else class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-4 border-gray-300">
+          <svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+          </svg>
         </div>
-        
-        <div class="flex-1">
-          <h3 class="text-xl font-bold text-white mb-1">
-            {{ displayUser.first_name }} {{ displayUser.last_name || '' }}
+
+        <!-- 用户基本信息 -->
+        <div class="text-center space-y-2">
+          <h3 class="text-xl font-semibold text-gray-800">
+            {{ displayUser.first_name }} {{ displayUser.last_name }}
           </h3>
-          <p v-if="displayUser.username" class="text-blue-200 font-medium">
+          <p v-if="displayUser.username" class="text-blue-600 font-medium">
             @{{ displayUser.username }}
           </p>
-          <p v-else class="text-gray-300 text-sm">
-            无用户名
-          </p>
-        </div>
-      </div>
-
-      <!-- 详细信息 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- 用户ID -->
-        <div class="bg-black/20 rounded-lg p-4">
-          <div class="text-gray-300 text-sm font-medium mb-1">用户 ID</div>
-          <div class="text-white font-mono text-lg">{{ displayUser.id }}</div>
         </div>
 
-        <!-- Chat Instance -->
-        <div class="bg-black/20 rounded-lg p-4">
-          <div class="text-gray-300 text-sm font-medium mb-1">Chat Instance</div>
-          <div class="text-white font-mono text-lg">{{ getChatInstance() || '未设置' }}</div>
-        </div>
-      </div>
-
-      <!-- 其他信息 -->
-      <div class="mt-4 text-sm text-gray-300 space-y-1">
-        <div class="flex justify-between">
-          <span>语言:</span>
-          <span class="text-white">{{ displayUser.language_code || '未知' }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>Premium:</span>
-          <span class="text-white">{{ displayUser.is_premium ? '是' : '否' }}</span>
-        </div>
-        <div class="flex justify-between">
-          <span>聊天类型:</span>
-          <span class="text-white">{{ getChatType() }}</span>
+        <!-- 用户详细信息 -->
+        <div class="w-full space-y-3">
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <span class="text-gray-600 font-medium">用户 ID</span>
+            <span class="text-gray-800 font-mono">{{ displayUser.id }}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 无用户信息提示 -->
-    <div v-else-if="isReady" class="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-6 text-center">
-      <div class="text-yellow-200 mb-2">
-        <svg class="w-8 h-8 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    <!-- Chat Instance 信息 -->
+    <div v-if="getChatInstance()" class="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+      <div class="flex items-center space-x-3 mb-3">
+        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+            <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800">Chat Instance</h3>
+      </div>
+      <div class="bg-white rounded-lg p-4">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 font-medium">实例标识</span>
+          <span class="text-gray-800 font-mono text-sm bg-gray-100 px-3 py-1 rounded">
+            {{ getChatInstance() }}
+          </span>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">群组上下文唯一标识符</p>
+      </div>
+    </div>
+
+    <!-- 无数据提示 -->
+    <div v-if="!displayUser && isReady" class="text-center py-12">
+      <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
         </svg>
       </div>
-      <h3 class="text-yellow-200 font-semibold mb-1">未检测到用户信息</h3>
-      <p class="text-yellow-100 text-sm">请确保在Telegram环境中打开此应用</p>
+      <p class="text-gray-600">暂无用户信息</p>
     </div>
   </div>
 </template>
@@ -89,12 +86,12 @@ import { ref, computed } from 'vue';
 import { useTelegram } from '../composables/useTelegram.js';
 import { parseTelegramWebAppUrl } from '../utils/urlParser.js';
 
-const { 
-  user, 
-  initDataUnsafe, 
-  isReady, 
+const {
+  user,
+  isReady,
   getChatInstance
 } = useTelegram();
+
 const urlData = ref(null);
 
 // 从 URL 解析的数据（作为备用）
@@ -102,22 +99,8 @@ urlData.value = parseTelegramWebAppUrl();
 
 // 合并 SDK 和 URL 解析的数据
 const displayUser = computed(() => user.value || urlData.value?.tgWebAppData?.user);
-
-const getChatType = () => {
-  return initDataUnsafe.value?.chat_type || urlData.value?.tgWebAppData?.chat_type || '未知';
-};
-
-// 获取用户姓名的首字母（用于默认头像）
-const getUserInitials = () => {
-  if (!displayUser.value) return '?';
-  const { first_name, last_name } = displayUser.value;
-  let initials = '';
-  if (first_name) initials += first_name.charAt(0).toUpperCase();
-  if (last_name) initials += last_name.charAt(0).toUpperCase();
-  return initials || 'U';
-};
 </script>
 
 <style scoped>
-/* 保留空样式标签，TailwindCSS已处理所有样式 */
+/* Tailwind CSS 已处理所有样式，这里保留 scoped 以防需要自定义样式 */
 </style>
