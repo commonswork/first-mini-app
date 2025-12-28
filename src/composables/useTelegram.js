@@ -131,6 +131,142 @@ export function useTelegram() {
     }
   };
 
+  // 分享到 Story（富媒体格式，带图片和按钮）
+  const shareToStory = (mediaUrl, options = {}) => {
+    if (!tg.value) {
+      console.error('Telegram WebApp 未初始化');
+      return false;
+    }
+
+    try {
+      // 检查方法是否存在（需要 Bot API 7.8+）
+      if (typeof tg.value.shareToStory !== 'function') {
+        console.error('shareToStory 方法不可用，需要 Bot API 7.8+');
+        return false;
+      }
+
+      // 构建分享参数
+      const params = {
+        text: options.text || '',
+        widget_link: options.widget_link || null
+      };
+
+      // 如果提供了 Mini App 链接，创建 widget_link
+      if (options.miniAppUrl) {
+        params.widget_link = {
+          url: options.miniAppUrl,
+          name: options.buttonText || '打开 Mini App'
+        };
+      }
+
+      // 调用 shareToStory 方法
+      tg.value.shareToStory(mediaUrl, params);
+      return true;
+    } catch (error) {
+      console.error('分享到 Story 失败:', error);
+      return false;
+    }
+  };
+  // 分享直接链接（不通过机器人）
+  const shareDirectLink = (url, options = {}) => {
+    if (!tg.value) {
+      console.error('Telegram WebApp 未初始化');
+      return false;
+    }
+
+    try {
+      // 支持多种参数格式
+      let text = '';
+      
+      if (typeof options === 'string') {
+        // 如果 options 是字符串，直接作为文本
+        text = options;
+      } else if (typeof options === 'object') {
+        // 如果 options 是对象，支持更多自定义选项
+        const {
+          text: customText = '',
+          title = '',
+          description = '',
+          useMarkdown = false,
+          emoji = '',
+          hashtags = [],
+          mentions = []
+        } = options;
+
+        // 构建富文本内容
+        let content = [];
+        
+        if (emoji) content.push(emoji);
+        if (title) {
+          content.push(useMarkdown ? `*${title}*` : title);
+        }
+        if (description) {
+          content.push(useMarkdown ? `_${description}_` : description);
+        }
+        if (customText) {
+          content.push(customText);
+        }
+        if (hashtags.length > 0) {
+          content.push(hashtags.map(tag => `#${tag}`).join(' '));
+        }
+        if (mentions.length > 0) {
+          content.push(mentions.map(mention => `@${mention}`).join(' '));
+        }
+
+        text = content.filter(Boolean).join('\n\n');
+      }
+
+      // 构建分享 URL
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+      
+      // 使用 openTelegramLink 打开分享界面
+      tg.value.openTelegramLink(shareUrl);
+      return true;
+    } catch (error) {
+      console.error('分享直接链接失败:', error);
+      return false;
+    }
+  };
+
+  // 创建预设的分享模板
+  const createShareTemplate = (templateType, customData = {}) => {
+    const templates = {
+      simple: {
+        emoji: '🚀',
+        title: 'Mini App 分享',
+        description: '快来体验这个超棒的应用！',
+        useMarkdown: true
+      },
+      
+      announcement: {
+        emoji: '📢',
+        title: '重要通知',
+        description: '查看最新更新内容',
+        useMarkdown: true,
+        hashtags: ['MiniApp', '更新']
+      },
+      
+      invitation: {
+        emoji: '🎉',
+        title: '邀请你加入',
+        description: '一起来探索这个有趣的应用吧！',
+        useMarkdown: true,
+        hashtags: ['邀请', '体验']
+      },
+      
+      feature: {
+        emoji: '✨',
+        title: '新功能上线',
+        description: '发现更多精彩功能',
+        useMarkdown: true,
+        hashtags: ['新功能', 'Feature']
+      }
+    };
+
+    const template = templates[templateType] || templates.simple;
+    return { ...template, ...customData };
+  };
+
   // 获取聊天实例 ID（用于识别是从哪个群组打开的）
   const getChatInstance = () => {
     return initDataUnsafe.value?.chat_instance || null;
@@ -158,6 +294,9 @@ export function useTelegram() {
     openLink,
     openTelegramLink,
     shareToChat,
+    shareDirectLink,
+    shareToStory,
+    createShareTemplate,
     getChatInstance,
     getStartParam
   };
