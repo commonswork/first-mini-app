@@ -2,60 +2,102 @@
   <div class="telegram-info">
     <h2>Telegram Web App 信息</h2>
     
+    <div v-if="!isReady" class="loading">
+      <p>正在加载 Telegram SDK...</p>
+    </div>
+
     <!-- 用户信息 -->
-    <section v-if="user" class="info-section">
+    <section v-if="displayUser" class="info-section">
       <h3>👤 用户信息</h3>
       <div class="info-card">
-        <div v-if="user.photo_url" class="user-avatar">
-          <img :src="user.photo_url" alt="用户头像" />
+        <div v-if="displayUser.photo_url" class="user-avatar">
+          <img :src="displayUser.photo_url" alt="用户头像" />
         </div>
         <div class="info-item">
           <span class="label">ID:</span>
-          <span class="value">{{ user.id }}</span>
+          <span class="value">{{ displayUser.id }}</span>
         </div>
         <div class="info-item">
           <span class="label">姓名:</span>
-          <span class="value">{{ user.first_name }} {{ user.last_name }}</span>
+          <span class="value">{{ displayUser.first_name }} {{ displayUser.last_name }}</span>
         </div>
-        <div class="info-item" v-if="user.username">
+        <div class="info-item" v-if="displayUser.username">
           <span class="label">用户名:</span>
-          <span class="value">@{{ user.username }}</span>
+          <span class="value">@{{ displayUser.username }}</span>
         </div>
         <div class="info-item">
           <span class="label">语言:</span>
-          <span class="value">{{ user.language_code }}</span>
+          <span class="value">{{ displayUser.language_code }}</span>
+        </div>
+        <div class="info-item" v-if="displayUser.is_premium">
+          <span class="label">Premium:</span>
+          <span class="value">✨ 是</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 聊天信息 -->
+    <section class="info-section">
+      <h3>💬 聊天信息</h3>
+      <div class="info-card">
+        <div class="info-item">
+          <span class="label">聊天类型:</span>
+          <span class="value">{{ getChatType() }}</span>
+        </div>
+        <div v-if="chat" class="info-item">
+          <span class="label">Chat ID:</span>
+          <span class="value">{{ chat.id }}</span>
+        </div>
+        <div v-else-if="displayUser && getChatType() === 'private'" class="info-item">
+          <span class="label">Chat ID (私聊):</span>
+          <span class="value">{{ displayUser.id }} <span class="hint">（私聊时 chat_id = user_id）</span></span>
+        </div>
+        <div class="info-item" v-if="chat?.title">
+          <span class="label">聊天标题:</span>
+          <span class="value">{{ chat.title }}</span>
+        </div>
+        <div class="info-item" v-if="chat?.username">
+          <span class="label">聊天用户名:</span>
+          <span class="value">@{{ chat.username }}</span>
+        </div>
+        <div v-if="!chat && getChatType() === 'private'" class="info-note">
+          ℹ️ 私聊场景下，chat 对象为空是正常的。可以使用 user.id 作为 chat_id。
         </div>
       </div>
     </section>
 
     <!-- 应用信息 -->
-    <section v-if="appData" class="info-section">
+    <section v-if="isReady" class="info-section">
       <h3>📱 应用信息</h3>
       <div class="info-card">
         <div class="info-item">
           <span class="label">版本:</span>
-          <span class="value">{{ appData.tgWebAppVersion }}</span>
+          <span class="value">{{ tg.version }}</span>
         </div>
         <div class="info-item">
           <span class="label">平台:</span>
-          <span class="value">{{ appData.tgWebAppPlatform }}</span>
+          <span class="value">{{ tg.platform }}</span>
         </div>
-        <div class="info-item" v-if="appData.tgWebAppData">
+        <div class="info-item">
           <span class="label">聊天类型:</span>
-          <span class="value">{{ appData.tgWebAppData.chat_type }}</span>
+          <span class="value">{{ getChatType() }}</span>
         </div>
-        <div class="info-item" v-if="appData.tgWebAppData">
+        <div class="info-item" v-if="initDataUnsafe?.auth_date">
           <span class="label">认证时间:</span>
-          <span class="value">{{ formatAuthDate(appData.tgWebAppData.auth_date) }}</span>
+          <span class="value">{{ formatAuthDate(initDataUnsafe.auth_date) }}</span>
+        </div>
+        <div class="info-item" v-if="initDataUnsafe?.query_id">
+          <span class="label">Query ID:</span>
+          <span class="value">{{ initDataUnsafe.query_id }}</span>
         </div>
       </div>
     </section>
 
     <!-- 主题信息 -->
-    <section v-if="theme" class="info-section">
+    <section v-if="displayTheme" class="info-section">
       <h3>🎨 主题配置</h3>
       <div class="info-card theme-colors">
-        <div class="color-item" v-for="(color, key) in theme" :key="key">
+        <div class="color-item" v-for="(color, key) in displayTheme" :key="key">
           <span class="color-label">{{ formatThemeKey(key) }}:</span>
           <div class="color-display">
             <span class="color-box" :style="{ backgroundColor: color }"></span>
@@ -69,26 +111,27 @@
     <section class="info-section">
       <h3>📋 原始数据</h3>
       <details class="raw-data">
-        <summary>点击查看完整 JSON</summary>
-        <pre>{{ JSON.stringify({ user, appData, theme }, null, 2) }}</pre>
+        <summary>点击查看完整 JSON (SDK)</summary>
+        <pre>{{ JSON.stringify({ user: displayUser, chat, initDataUnsafe, themeParams: displayTheme }, null, 2) }}</pre>
       </details>
     </section>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { parseTelegramWebAppUrl, getTelegramUser, getTelegramTheme } from '../utils/urlParser.js';
+import { ref, computed } from 'vue';
+import { useTelegram } from '../composables/useTelegram.js';
+import { parseTelegramWebAppUrl } from '../utils/urlParser.js';
 
-const user = ref(null);
-const appData = ref(null);
-const theme = ref(null);
+const { user, chat, initDataUnsafe, themeParams, isReady, tg } = useTelegram();
+const urlData = ref(null);
 
-onMounted(() => {
-  user.value = getTelegramUser();
-  appData.value = parseTelegramWebAppUrl();
-  theme.value = getTelegramTheme();
-});
+// 从 URL 解析的数据（作为备用）
+urlData.value = parseTelegramWebAppUrl();
+
+// 合并 SDK 和 URL 解析的数据
+const displayUser = computed(() => user.value || urlData.value?.tgWebAppData?.user);
+const displayTheme = computed(() => themeParams.value || urlData.value?.tgWebAppThemeParams);
 
 const formatAuthDate = (timestamp) => {
   if (!timestamp) return '';
@@ -99,6 +142,25 @@ const formatAuthDate = (timestamp) => {
 const formatThemeKey = (key) => {
   return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
+
+const getChatType = () => {
+  if (chat.value) {
+    return chat.value.type;
+  }
+  return initDataUnsafe.value?.chat_type || urlData.value?.tgWebAppData?.chat_type || '未知';
+};
+
+// 获取有效的 chat_id
+const getEffectiveChatId = () => {
+  if (chat.value) {
+    return chat.value.id;
+  }
+  // 私聊场景下，使用 user_id 作为 chat_id
+  if (getChatType() === 'private' && displayUser.value) {
+    return displayUser.value.id;
+  }
+  return null;
+};
 </script>
 
 <style scoped>
@@ -106,6 +168,13 @@ const formatThemeKey = (key) => {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 1.1em;
 }
 
 h2 {
