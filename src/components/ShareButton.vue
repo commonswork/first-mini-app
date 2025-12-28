@@ -72,8 +72,8 @@ const shareTemplates = ref([
 
 // 富媒体分享（推荐方式）
 const shareRichMedia = () => {
-  if (!shareRichMessage) {
-    showAlert('富媒体分享功能不可用，需要机器人支持 Inline Query');
+  if (!shareRichMessage || typeof shareRichMessage !== 'function') {
+    showAlert('❌ 富媒体分享功能不可用\n需要机器人支持 Inline Query');
     return;
   }
 
@@ -86,6 +86,7 @@ const shareRichMedia = () => {
     miniAppUrl: 'https://t.me/MyMoniMoniBot/fisrtminiapp'
   };
 
+  // 调用分享函数
   shareRichMessage(options);
 };
 

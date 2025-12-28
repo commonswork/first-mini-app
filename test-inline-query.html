@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inline Query 测试</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #0088cc;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #006699;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Inline Query 测试工具</h1>
+    
+    <div class="test-section">
+        <h3>📱 Telegram WebApp 状态</h3>
+        <div id="webapp-status">检查中...</div>
+        <button onclick="checkWebAppStatus()">重新检查</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>🚀 测试 Inline Query</h3>
+        <button onclick="testBasicInlineQuery()">基础 Inline Query</button>
+        <button onclick="testRichMediaQuery()">富媒体 Inline Query</button>
+        <button onclick="testCustomQuery()">自定义查询</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>📋 调试日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        let tg = null;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        function checkWebAppStatus() {
+            log('🔍 检查 Telegram WebApp 状态...');
+            
+            if (window.Telegram?.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                const status = `
+                    ✅ WebApp SDK 已加载
+                    📱 版本: ${tg.version}
+                    🖥️ 平台: ${tg.platform}
+                    👤 用户: ${tg.initDataUnsafe?.user?.first_name || '未知'}
+                    🔧 switchInlineQuery: ${typeof tg.switchInlineQuery === 'function' ? '✅ 可用' : '❌ 不可用'}
+                    🔧 shareToStory: ${typeof tg.shareToStory === 'function' ? '✅ 可用' : '❌ 不可用'}
+                `;
+                
+                document.getElementById('webapp-status').innerHTML = status.replace(/\n/g, '<br>');
+                log('✅ WebApp 状态检查完成');
+                
+                // 显示所有可用方法
+                log('🔧 可用方法: ' + Object.keys(tg).join(', '));
+                
+            } else {
+                const status = '❌ Telegram WebApp SDK 未加载';
+                document.getElementById('webapp-status').innerHTML = status;
+                log('❌ WebApp SDK 未加载');
+            }
+        }
+        
+        function testBasicInlineQuery() {
+            log('🧪 测试基础 Inline Query...');
+            
+            if (!tg) {
+                log('❌ WebApp 未初始化');
+                return;
+            }
+            
+            if (typeof tg.switchInlineQuery !== 'function') {
+                log('❌ switchInlineQuery 方法不可用');
+                return;
+            }
+            
+            try {
+                tg.switchInlineQuery('test_basic', ['users', 'groups']);
+                log('✅ 基础 inline query 调用成功');
+            } catch (error) {
+                log('❌ 基础 inline query 调用失败: ' + error.message);
+            }
+        }
+        
+        function testRichMediaQuery() {
+            log('🎨 测试富媒体 Inline Query...');
+            
+            if (!tg) {
+                log('❌ WebApp 未初始化');
+                return;
+            }
+            
+            if (typeof tg.switchInlineQuery !== 'function') {
+                log('❌ switchInlineQuery 方法不可用');
+                return;
+            }
+            
+            try {
+                const queryData = {
+                    type: 'rich_media',
+                    image: 'https://via.placeholder.com/800x400/667eea/ffffff?text=Test+Image',
+                    title: '🧪 测试富媒体分享',
+                    description: '这是一个测试富媒体消息，包含图片和按钮',
+                    buttonText: '打开测试应用',
+                    miniAppUrl: window.location.href
+                };
+                
+                const query = `rich_media:${JSON.stringify(queryData)}`;
+                log('📤 发送查询: ' + query);
+                
+                tg.switchInlineQuery(query, ['users', 'groups']);
+                log('✅ 富媒体 inline query 调用成功');
+            } catch (error) {
+                log('❌ 富媒体 inline query 调用失败: ' + error.message);
+            }
+        }
+        
+        function testCustomQuery() {
+            const customQuery = prompt('输入自定义查询内容:', 'custom_test');
+            if (customQuery) {
+                log('🔧 测试自定义查询: ' + customQuery);
+                
+                try {
+                    tg.switchInlineQuery(customQuery, ['users', 'groups']);
+                    log('✅ 自定义查询调用成功');
+                } catch (error) {
+                    log('❌ 自定义查询调用失败: ' + error.message);
+                }
+            }
+        }
+        
+        // 页面加载时自动检查状态
+        window.addEventListener('load', () => {
+            log('🚀 页面加载完成');
+            setTimeout(checkWebAppStatus, 500);
+        });
+        
+        // 监听 Telegram 事件
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.onEvent('themeChanged', () => {
+                log('🎨 主题已更改');
+            });
+        }
+    </script>
+</body>
+</html>

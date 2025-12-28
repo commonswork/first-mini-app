@@ -131,17 +131,30 @@ export function useTelegram() {
     }
   };
 
+  // 分享预设模板（简化版）
+  const shareTemplate = (templateType = 'default') => {
+    const templates = {
+      default: '',
+      invitation: 'invitation',
+      feature: 'feature', 
+      announcement: 'announcement'
+    };
+    
+    const query = templates[templateType] || '';
+    return shareToChat(query);
+  };
+
   // 分享富媒体消息（通过机器人发送带图片和按钮的消息）
   const shareRichMessage = (options = {}) => {
     if (!tg.value) {
-      console.error('Telegram WebApp 未初始化');
+      showAlert('❌ Telegram WebApp 未初始化');
       return false;
     }
 
     try {
       // 检查 switchInlineQuery 方法是否存在
       if (typeof tg.value.switchInlineQuery !== 'function') {
-        console.error('switchInlineQuery 方法不可用');
+        showAlert('❌ switchInlineQuery 方法不可用\n版本: ' + tg.value.version + '\n平台: ' + tg.value.platform);
         return false;
       }
 
@@ -160,9 +173,12 @@ export function useTelegram() {
       
       // 调用 switchInlineQuery，让用户选择聊天发送富媒体消息
       tg.value.switchInlineQuery(query, ['groups', 'users']);
+      
+      // 成功调用后显示提示
+      showAlert('✅ 已调用分享功能\n请选择要分享的聊天');
       return true;
     } catch (error) {
-      console.error('分享富媒体消息失败:', error);
+      showAlert('❌ 分享失败: ' + error.message);
       return false;
     }
   };
@@ -293,6 +309,7 @@ export function useTelegram() {
     openLink,
     openTelegramLink,
     shareToChat,
+    shareTemplate,
     shareDirectLink,
     shareRichMessage,
     createShareTemplate,
