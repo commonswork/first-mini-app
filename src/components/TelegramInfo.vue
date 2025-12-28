@@ -48,7 +48,7 @@
     </div>
 
     <!-- Chat Instance 信息 -->
-    <div v-if="getChatInstance()" class="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+    <div v-if="getChatInstance()" class="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mb-6">
       <div class="flex items-center space-x-3 mb-3">
         <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
           <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -69,6 +69,11 @@
       </div>
     </div>
 
+    <!-- 分享按钮 -->
+    <div class="mb-6">
+      <ShareButton />
+    </div>
+
     <!-- 无数据提示 -->
     <div v-if="!displayUser && isReady" class="text-center py-12">
       <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -85,6 +90,7 @@
 import { ref, computed } from 'vue';
 import { useTelegram } from '../composables/useTelegram.js';
 import { parseTelegramWebAppUrl } from '../utils/urlParser.js';
+import ShareButton from './ShareButton.vue';
 
 const {
   user,
