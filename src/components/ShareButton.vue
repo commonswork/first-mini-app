@@ -30,6 +30,10 @@
         <button @click="shareToAll" class="share-button secondary">
           📨 分享到任意聊天
         </button>
+        
+        <button @click="testOpenLink" class="share-button test">
+          🧪 测试打开链接
+        </button>
       </div>
 
       <div v-if="chatInstance" class="context-info">
@@ -112,17 +116,20 @@ onMounted(async () => {
   
   if (initData.value) {
     try {
-      // 记录用户打开 Mini App
-      await trackOpen(initData.value);
-      console.log('✅ 已记录打开事件');
+      // 记录用户打开 Mini App（不阻塞）
+      trackOpen(initData.value).catch(err => {
+        console.warn('记录打开事件失败（不影响功能）:', err);
+      });
       
-      // 如果是从群组打开的，获取群组统计
+      // 如果是从群组打开的，获取群组统计（不阻塞）
       if (chatInstance.value) {
-        await loadGroupStats();
+        loadGroupStats().catch(err => {
+          console.warn('加载群组统计失败（不影响功能）:', err);
+        });
       }
     } catch (error) {
-      console.error('记录打开事件失败:', error);
-      // 不影响用户体验，静默失败
+      console.error('初始化失败:', error);
+      // 不影响用户体验，继续执行
     }
   }
 });
@@ -143,72 +150,105 @@ const loadGroupStats = async () => {
 };
 
 // 分享到群组
-const shareToGroups = async () => {
-  console.log('点击分享到群组按钮');
+const shareToGroups = () => {
+  console.log('=== 点击分享到群组按钮 ===');
+  console.log('shareToChat 存在:', !!shareToChat);
+  console.log('shareFallback 存在:', !!shareFallback);
+  console.log('支持 switchInlineQuery:', supportsSwitchInlineQuery.value);
   
-  if (!shareToChat) {
-    console.error('shareToChat 函数不存在');
+  if (!shareToChat || !shareFallback) {
+    console.error('分享函数不存在');
     showAlert('分享功能不可用');
     return;
   }
   
-  // 记录分享行为
+  // 记录分享行为（不阻塞，不等待）
   if (user.value) {
-    try {
-      await trackAction(user.value.id, 'share_to_groups', {
-        chatInstance: chatInstance.value,
-        telegramVersion: telegramVersion.value
-      });
-    } catch (error) {
-      console.error('记录分享行为失败:', error);
-    }
+    trackAction(user.value.id, 'share_to_groups', {
+      chatInstance: chatInstance.value,
+      telegramVersion: telegramVersion.value
+    }).catch(err => console.warn('记录失败（不影响功能）:', err));
   }
   
   // 检查版本支持
   if (!supportsSwitchInlineQuery.value) {
     // 使用备用方案
-    console.log('使用备用分享方案');
+    console.log('>>> 使用备用分享方案');
     const success = shareFallback('🎉 快来试试这个超棒的 Mini App！');
-    console.log('shareFallback 调用结果:', success);
+    console.log('>>> shareFallback 调用结果:', success);
   } else {
     // 使用 switchInlineQuery
+    console.log('>>> 使用 switchInlineQuery');
     const success = shareToChat('查看这个超棒的 Mini App！', ['groups']);
-    console.log('shareToChat 调用结果:', success);
+    console.log('>>> shareToChat 调用结果:', success);
   }
 };
 
 // 分享到所有类型的聊天
-const shareToAll = async () => {
-  console.log('点击分享到所有聊天按钮');
+const shareToAll = () => {
+  console.log('=== 点击分享到所有聊天按钮 ===');
   
-  if (!shareToChat) {
-    console.error('shareToChat 函数不存在');
+  if (!shareToChat || !shareFallback) {
+    console.error('分享函数不存在');
     showAlert('分享功能不可用');
     return;
   }
   
-  // 记录分享行为
+  // 记录分享行为（不阻塞，不等待）
   if (user.value) {
-    try {
-      await trackAction(user.value.id, 'share_to_all', {
-        chatInstance: chatInstance.value,
-        telegramVersion: telegramVersion.value
-      });
-    } catch (error) {
-      console.error('记录分享行为失败:', error);
-    }
+    trackAction(user.value.id, 'share_to_all', {
+      chatInstance: chatInstance.value,
+      telegramVersion: telegramVersion.value
+    }).catch(err => console.warn('记录失败（不影响功能）:', err));
   }
   
   // 检查版本支持
   if (!supportsSwitchInlineQuery.value) {
     // 使用备用方案
-    console.log('使用备用分享方案');
+    console.log('>>> 使用备用分享方案');
     const success = shareFallback('🎉 快来试试这个超棒的 Mini App！');
-    console.log('shareFallback 调用结果:', success);
+    console.log('>>> shareFallback 调用结果:', success);
   } else {
     // 使用 switchInlineQuery
+    console.log('>>> 使用 switchInlineQuery');
     const success = shareToChat('查看这个超棒的 Mini App！', ['users', 'bots', 'groups', 'channels']);
-    console.log('shareToChat 调用结果:', success);
+    console.log('>>> shareToChat 调用结果:', success);
+  }
+};
+
+// 测试打开链接功能
+const testOpenLink = () => {
+  console.log('测试打开链接功能');
+  
+  if (!tg.value) {
+    showAlert('Telegram WebApp 未初始化');
+    return;
+  }
+  
+  console.log('可用方法:', {
+    hasOpenLink: typeof tg.value.openLink === 'function',
+    hasOpenTelegramLink: typeof tg.value.openTelegramLink === 'function',
+    hasSwitchInlineQuery: typeof tg.value.switchInlineQuery === 'function'
+  });
+  
+  // 测试打开一个简单的链接
+  const testUrl = 'https://telegram.org';
+  
+  try {
+    if (typeof tg.value.openLink === 'function') {
+      console.log('尝试 openLink:', testUrl);
+      tg.value.openLink(testUrl);
+      showAlert('✅ openLink 可用\n已尝试打开 telegram.org');
+    } else if (typeof tg.value.openTelegramLink === 'function') {
+      console.log('尝试 openTelegramLink:', testUrl);
+      tg.value.openTelegramLink(testUrl);
+      showAlert('✅ openTelegramLink 可用\n已尝试打开链接');
+    } else {
+      showAlert('❌ 没有可用的打开链接方法\n\n版本: ' + telegramVersion.value);
+    }
+  } catch (error) {
+    console.error('测试失败:', error);
+    showAlert('❌ 测试失败:\n' + error.message);
   }
 };
 </script>
@@ -289,6 +329,16 @@ h4 {
 .share-button.secondary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+.share-button.test {
+  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+  color: white;
+}
+
+.share-button.test:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 167, 38, 0.4);
 }
 
 .share-button:active {

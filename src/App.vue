@@ -2,13 +2,17 @@
 import TelegramInfo from './components/TelegramInfo.vue';
 import ShareButton from './components/ShareButton.vue';
 import DebugInfo from './components/DebugInfo.vue';
+import ConsoleLogger from './components/ConsoleLogger.vue';
+import VisualDebug from './components/VisualDebug.vue';
 </script>
 
 <template>
   <div class="app">
+    <VisualDebug />
     <ShareButton />
     <TelegramInfo />
     <DebugInfo />
+    <ConsoleLogger />
   </div>
 </template>
 

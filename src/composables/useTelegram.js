@@ -188,9 +188,44 @@ export function useTelegram() {
     }
     
     try {
-      // 方案 1: 使用 Telegram 分享链接
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`;
-      tg.value.openLink(shareUrl);
+      console.log('使用备用分享方案, message:', message);
+      
+      const currentUrl = window.location.href;
+      
+      // 方案 1: 尝试使用 openLink
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(message)}`;
+      console.log('分享 URL:', shareUrl);
+      
+      if (typeof tg.value.openLink === 'function') {
+        console.log('尝试使用 openLink...');
+        tg.value.openLink(shareUrl);
+        console.log('✅ openLink 调用成功');
+        return true;
+      }
+      
+      // 方案 2: 尝试使用 openTelegramLink
+      if (typeof tg.value.openTelegramLink === 'function') {
+        console.log('尝试使用 openTelegramLink...');
+        tg.value.openTelegramLink(shareUrl);
+        console.log('✅ openTelegramLink 调用成功');
+        return true;
+      }
+      
+      // 方案 3: 显示链接让用户手动复制
+      console.log('使用手动复制方案');
+      const shareText = `${message}\n\n${currentUrl}`;
+      
+      // 尝试复制到剪贴板
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText).then(() => {
+          showAlert('✅ 链接已复制到剪贴板！\n\n请手动粘贴到群组中分享。');
+        }).catch(() => {
+          showAlert(`请复制以下内容分享：\n\n${shareText}`);
+        });
+      } else {
+        showAlert(`请复制以下内容分享：\n\n${shareText}`);
+      }
+      
       return true;
     } catch (error) {
       console.error('备用分享方案失败:', error);
