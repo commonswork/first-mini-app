@@ -40,11 +40,18 @@
     <!-- 说明文字 -->
     <div class="text-center text-sm text-gray-600 max-w-md">
       <p class="mb-2">
-        <span class="font-medium text-purple-600">富媒体卡片</span>：带图片预览和按钮的精美消息（需要机器人支持）
+        <span class="font-medium text-purple-600">富媒体卡片</span>：需要编写机器人 Inline Query 处理代码
       </p>
-      <p>
-        <span class="font-medium text-blue-600">文本链接</span>：传统的文本 + 链接分享方式
+      <p class="mb-2">
+        <span class="font-medium text-blue-600">文本链接</span>：无需额外开发，即开即用
       </p>
+      <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs">
+        <p class="font-medium text-yellow-800 mb-1">💡 关于富媒体分享</p>
+        <p class="text-yellow-700">
+          要实现带图片和按钮的消息，需要在机器人服务器端编写 Inline Query 处理器代码。
+          如果暂时不想开发，建议使用文本链接分享。
+        </p>
+      </div>
     </div>
   </div>
 </template>
