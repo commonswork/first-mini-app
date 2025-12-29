@@ -61,7 +61,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useTelegram } from '../composables/useTelegram.js';
+import { useTelegram } from '../composables/useTelegramFixed.js';
 
 const { tg, user, isReady, showAlert } = useTelegram();
 

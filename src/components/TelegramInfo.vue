@@ -88,7 +88,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useTelegram } from '../composables/useTelegram.js';
+import { useTelegram } from '../composables/useTelegramFixed.js';
 import { parseTelegramWebAppUrl } from '../utils/urlParser.js';
 import ShareButton from './ShareButton.vue';
 

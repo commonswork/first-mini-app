@@ -58,7 +58,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useTelegram } from '../composables/useTelegram.js';
+import { useTelegram } from '../composables/useTelegramFixed.js';
 
 const { shareDirectLink, shareRichMessage, shareTemplate } = useTelegram();
 
